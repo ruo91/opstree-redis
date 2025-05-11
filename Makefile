@@ -1,7 +1,7 @@
-CONTAINER_ENGINE ?= docker
-REDIS_VERSION ?= v7.0.13
-REDIS_SENTINEL_VERSION ?= v7.0.13
-REDIS_EXPORTER_VERSION ?= v1.61.0
+CONTAINER_ENGINE ?= podman
+REDIS_VERSION ?= v8.0
+REDIS_SENTINEL_VERSION ?= v8.0
+REDIS_EXPORTER_VERSION ?= v1.17.0
 
 IMG ?= quay.io/opstree/redis:$(REDIS_VERSION)
 EXPORTER_IMG ?= quay.io/opstree/redis-exporter:$(REDIS_EXPORTER_VERSION)
@@ -36,22 +36,22 @@ setup-cluster-compose:
 	docker-compose exec redis-slave-3 /bin/bash -c "/usr/bin/setupMasterSlave.sh"
 
 docker-create:
-	docker buildx create --platform "linux/amd64,linux/arm64" --use
+	${CONTAINER_ENGINE} buildx create --platform "linux/amd64,linux/arm64" --use
 
 docker-build-redis:
-	docker buildx build --platform="linux/arm64,linux/amd64" -t ${IMG} -f Dockerfile .
+	${CONTAINER_ENGINE} buildx build --platform="linux/arm64,linux/amd64" -t ${IMG} -f Dockerfile .
 
 docker-push-redis:
-	docker buildx build --push --platform="linux/arm64,linux/amd64" -t ${IMG} -f Dockerfile .
+	${CONTAINER_ENGINE} buildx build --push --platform="linux/arm64,linux/amd64" -t ${IMG} -f Dockerfile .
 
 docker-build-redis-sentinel:
-	docker buildx build --platform="linux/arm64,linux/amd64" -t ${SENTINEL_IMG} -f Dockerfile.sentinel .
+	${CONTAINER_ENGINE} buildx build --platform="linux/arm64,linux/amd64" -t ${SENTINEL_IMG} -f Dockerfile.sentinel .
 
 docker-push-redis-sentinel:
-	docker buildx build --push --platform="linux/arm64,linux/amd64" -t ${SENTINEL_IMG} -f Dockerfile.sentinel .
+	${CONTAINER_ENGINE} buildx build --push --platform="linux/arm64,linux/amd64" -t ${SENTINEL_IMG} -f Dockerfile.sentinel .
 
 docker-build-exporter:
-	docker buildx build --platform="linux/arm64,linux/amd64" -t ${EXPORTER_IMG} -f Dockerfile.exporter .
+	${CONTAINER_ENGINE} buildx build --platform="linux/arm64,linux/amd64" -t ${EXPORTER_IMG} -f Dockerfile.exporter .
 
 docker-push-exporter:
-	docker buildx build --push --platform="linux/arm64,linux/amd64" -t ${EXPORTER_IMG} -f Dockerfile.exporter .
+	${CONTAINER_ENGINE} buildx build --push --platform="linux/arm64,linux/amd64" -t ${EXPORTER_IMG} -f Dockerfile.exporter .
