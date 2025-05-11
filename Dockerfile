@@ -1,4 +1,4 @@
-FROM alpine:3.19 as builder
+FROM alpine:3.21.3 as builder
 
 LABEL maintainer="Opstree Solutions"
 
@@ -31,7 +31,7 @@ RUN VERSION=$(echo ${REDIS_VERSION} | sed -e "s/^v//g"); \
     make -C redis-${VERSION} all; \
     make -C redis-${VERSION} install
 
-FROM alpine:3.19
+FROM alpine:3.21.3
 
 LABEL maintainer="Opstree Solutions"
 
