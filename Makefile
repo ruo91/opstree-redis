@@ -59,7 +59,7 @@ docker-push-redis-sentinel:
 	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${SENTINEL_IMG} -f ${REDIS_SENTINEL_DOCKERFILE} .
 
 docker-build-exporter:
-	${CONTAINER_ENGINE} buildx build --platform="${REDIS_PLATFORM}" -t ${EXPORTER_IMG} -f ${REDIS_EXPOTER_DOCKERFILE} .
+	${CONTAINER_ENGINE} buildx build --platform="${REDIS_PLATFORM}" -t ${EXPORTER_IMG} -f ${REDIS_EXPORTER_DOCKERFILE} .
 
 docker-push-exporter:
 	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${EXPORTER_IMG} -f ${REDIS_EXPOTER_DOCKERFILE} .
