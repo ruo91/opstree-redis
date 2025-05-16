@@ -31,7 +31,8 @@ RUN VERSION=$(echo ${REDIS_VERSION} | sed -e "s/^v//g"); \
     fi; \
     export BUILD_TLS=yes; \
     make -C redis-${VERSION} all; \
-    make -C redis-${VERSION} install
+    make -C redis-${VERSION} install \
+    && cp redis-${VERSION}/src/redis-* /usr/local/bin/
 
 FROM registry.redhat.io/ubi9/ubi:9.6-1747219013
 LABEL maintainer="Opstree Solutions"
@@ -44,6 +45,8 @@ LABEL version=1.0 \
 
 COPY --from=builder /usr/local/bin/redis-server /usr/local/bin/redis-server
 COPY --from=builder /usr/local/bin/redis-cli /usr/local/bin/redis-cli
+COPY --from=builder /usr/local/bin/redis-check-aof /usr/local/bin/redis-check-aof
+COPY --from=builder /usr/local/bin/redis-check-rdc /usr/local/bin/redis-check-rdc
 COPY --from=builder /usr/local/bin/redis-benchmark /usr/local/bin/redis-benchmark
 
 RUN dnf install -y \
