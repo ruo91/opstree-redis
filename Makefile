@@ -5,7 +5,7 @@ REDIS_EXPORTER_VERSION ?= v1.72.0
 
 REDIS_PLATFORM ?= linux/amd64
 REDIS_DOCKERFILE ?= Dockerfile.ubi9
-REDIS_TOOLS ?= Dockerfile.tools-ubi9
+REDIS_TOOLS_DOCKERFILE ?= Dockerfile.tools-ubi9
 REDIS_SENTINEL_DOCKERFILE ?= Dockerfile.sentinel-ubi9
 REDIS_EXPORTER_DOCKERFILE ?= Dockerfile.exporter-ubi9
 
