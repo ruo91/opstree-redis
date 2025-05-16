@@ -4,7 +4,7 @@ ARG TARGETARCH
 
 ARG EXPORTER_URL="https://github.com/oliver006/redis_exporter/releases/download"
 
-ARG REDIS_EXPORTER_VERSION="v1.71.0"
+ARG REDIS_EXPORTER_VERSION="v1.72.0"
 
 WORKDIR /tmp
 
