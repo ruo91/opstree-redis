@@ -7,7 +7,7 @@ check_redis_health() {
     if [[ "${TLS_MODE}" == "true" ]]; then
         redis-cli --tls --cert "${REDIS_TLS_CERT}" --key "${REDIS_TLS_CERT_KEY}" --cacert "${REDIS_TLS_CA_KEY}" -h "$(hostname)" -p "${SENTINEL_PORT}" ping
     else
-        redis-cli -h "$(hostname)" -p "${SENTINEL_PORT}" ping
+        redis-cli -h "localhost" -p "${SENTINEL_PORT}" ping
     fi
 }
 
