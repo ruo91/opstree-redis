@@ -44,6 +44,7 @@ LABEL version=1.0 \
 
 COPY --from=builder /usr/local/bin/redis-cli /usr/local/bin/redis-cli
 COPY --from=builder /usr/local/bin/redis-sentinel /usr/local/bin/redis-sentinel
+COPY --from=builder /usr/local/bin/redis-benchmark /usr/local/bin/redis-benchmark
 
 RUN groupadd -g 1000 redis && useradd -g redis -u 1000 redis \
   && dnf clean all
