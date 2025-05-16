@@ -6,8 +6,7 @@ REDIS_EXPORTER_VERSION ?= v1.72.0
 REDIS_PLATFORM ?= linux/amd64
 REDIS_DOCKERFILE ?= Dockerfile.ubi9
 REDIS_SENTINEL_DOCKERFILE ?= Dockerfile.sentinel-ubi9
-REDIS_EXPORTER_DOCKERFILE ?= Dockerfile.exporter
-
+REDIS_EXPORTER_DOCKERFILE ?= Dockerfile.exporter-ubi9
 
 IMG ?= quay.io/opstree/redis-ubi9:$(REDIS_VERSION)
 EXPORTER_IMG ?= quay.io/opstree/redis-exporter-ubi9:$(REDIS_EXPORTER_VERSION)
