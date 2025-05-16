@@ -52,7 +52,7 @@ COPY --from=builder /usr/local/bin/redis-benchmark /usr/local/bin/redis-benchmar
 RUN dnf install -y \
     shadow-utils tzdata make gcc \
     gcc-c++ glibc-devel kernel-headers \
-    bash openssl-devel libstdc++ procps-ng diffutils net-tools
+    bash openssl-devel libstdc++ procps-ng diffutils net-tools ncurses
 
 RUN groupadd -g 1000 redis && useradd -g redis -u 1000 redis \
   && dnf clean all
