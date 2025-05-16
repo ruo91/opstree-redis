@@ -1,5 +1,6 @@
 CONTAINER_ENGINE ?= podman
 REDIS_VERSION ?= v8.0.1
+REDIS_TOOLS_VERSION ?= v8.0.1
 REDIS_SENTINEL_VERSION ?= v8.0.1
 REDIS_EXPORTER_VERSION ?= v1.72.0
 
@@ -10,6 +11,7 @@ REDIS_SENTINEL_DOCKERFILE ?= Dockerfile.sentinel-ubi9
 REDIS_EXPORTER_DOCKERFILE ?= Dockerfile.exporter-ubi9
 
 IMG ?= quay.io/opstree/redis-ubi9:$(REDIS_VERSION)
+TOOLS_IMG ?= quay.io/opstree/redis-tools-ubi9:$(REDIS_TOOLS_VERSION)
 EXPORTER_IMG ?= quay.io/opstree/redis-exporter-ubi9:$(REDIS_EXPORTER_VERSION)
 SENTINEL_IMG ?= quay.io/opstree/redis-sentinel-ubi9:$(REDIS_SENTINEL_VERSION)
 
@@ -61,3 +63,9 @@ docker-build-exporter:
 
 docker-push-exporter:
 	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${EXPORTER_IMG} -f ${REDIS_EXPOTER_DOCKERFILE} .
+
+docker-build-tools:
+	${CONTAINER_ENGINE} buildx build --platform="${REDIS_PLATFORM}" -t ${TOOLS_IMG} -f ${REDIS_TOOLS_DOCKERFILE} .
+
+docker-push-tools:
+	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${TOOLS_IMG} -f ${REDIS_TOOLS_DOCKERFILE} .
