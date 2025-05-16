@@ -44,6 +44,14 @@ redis_mode_setup() {
         POD_HOSTNAME=$(hostname)
         POD_IP=$(hostname -i)
         sed -i -e "/myself/ s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/${POD_IP}/" "${NODE_CONF_DIR}/nodes.conf"
+
+    elif [[ "${SETUP_MODE}" == "replication" ]]; then
+        {
+            echo "# Redis Replication with Multus"
+            echo "replica-announce-ip $(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')"
+            echo "replica-announce-port ${REDIS_PORT}"
+        } >> /etc/redis/redis.conf
+
     else
         echo "Setting up redis in standalone mode"
     fi
@@ -142,7 +150,7 @@ start_redis() {
         else
             CLUSTER_ANNOUNCE_IP="${POD_IP}"
         fi
-        
+
         if [[ "${REDIS_MAJOR_VERSION}" != "v7" ]]; then
           exec redis-server /etc/redis/redis.conf \
           --cluster-announce-ip "${CLUSTER_ANNOUNCE_IP}"
