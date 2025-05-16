@@ -46,7 +46,7 @@ LABEL version=1.0 \
 COPY --from=builder /usr/local/bin/redis-server /usr/local/bin/redis-server
 COPY --from=builder /usr/local/bin/redis-cli /usr/local/bin/redis-cli
 COPY --from=builder /usr/local/bin/redis-check-aof /usr/local/bin/redis-check-aof
-COPY --from=builder /usr/local/bin/redis-check-rdc /usr/local/bin/redis-check-rdc
+COPY --from=builder /usr/local/bin/redis-check-rdb /usr/local/bin/redis-check-rdb
 COPY --from=builder /usr/local/bin/redis-benchmark /usr/local/bin/redis-benchmark
 
 RUN dnf install -y \
