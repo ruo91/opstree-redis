@@ -3,9 +3,15 @@ REDIS_VERSION ?= v8.0.0
 REDIS_SENTINEL_VERSION ?= v8.0.0
 REDIS_EXPORTER_VERSION ?= v1.17.0
 
-IMG ?= quay.io/opstree/redis:$(REDIS_VERSION)
-EXPORTER_IMG ?= quay.io/opstree/redis-exporter:$(REDIS_EXPORTER_VERSION)
-SENTINEL_IMG ?= quay.io/opstree/redis-sentinel:$(REDIS_SENTINEL_VERSION)
+REDIS_PLATFORM ?= linux/amd64
+REDIS_DOCKERFILE ?= Dockerfile.ubi9
+REDIS_SENTINEL_DOCKERFILE ?= Dockerfile.sentinel-ubi9
+REDIS_EXPORTER_DOCKERFILE ?= Dockerfile.exporter
+
+
+IMG ?= quay.io/opstree/redis-ubi9:$(REDIS_VERSION)
+EXPORTER_IMG ?= quay.io/opstree/redis-exporter-ubi9:$(REDIS_EXPORTER_VERSION)
+SENTINEL_IMG ?= quay.io/opstree/redis-sentinel-ubi9:$(REDIS_SENTINEL_VERSION)
 
 build-redis:
 	${CONTAINER_ENGINE} build -t ${IMG} -f Dockerfile --build-arg REDIS_VERSION=${REDIS_VERSION} .
@@ -36,22 +42,22 @@ setup-cluster-compose:
 	docker-compose exec redis-slave-3 /bin/bash -c "/usr/bin/setupMasterSlave.sh"
 
 docker-create:
-	${CONTAINER_ENGINE} buildx create --platform "linux/amd64,linux/arm64" --use
+	${CONTAINER_ENGINE} buildx create --platform "${REDIS_PLATFORM}" --use
 
 docker-build-redis:
-	${CONTAINER_ENGINE} buildx build --platform="linux/arm64,linux/amd64" -t ${IMG} -f Dockerfile .
+	${CONTAINER_ENGINE} buildx build --platform="${REDIS_PLATFORM}" -t ${IMG} -f ${REDIS_DOCKERFILE} .
 
 docker-push-redis:
-	${CONTAINER_ENGINE} buildx build --push --platform="linux/arm64,linux/amd64" -t ${IMG} -f Dockerfile .
+	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${IMG} -f ${REDIS_DOCKERFILE} .
 
 docker-build-redis-sentinel:
-	${CONTAINER_ENGINE} buildx build --platform="linux/arm64,linux/amd64" -t ${SENTINEL_IMG} -f Dockerfile.sentinel .
+	${CONTAINER_ENGINE} buildx build --platform="${REDIS_PLATFORM}" -t ${SENTINEL_IMG} -f ${REDIS_SENTINEL_DOCKERFILE} .
 
 docker-push-redis-sentinel:
-	${CONTAINER_ENGINE} buildx build --push --platform="linux/arm64,linux/amd64" -t ${SENTINEL_IMG} -f Dockerfile.sentinel .
+	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${SENTINEL_IMG} -f ${REDIS_SENTINEL_DOCKERFILE} .
 
 docker-build-exporter:
-	${CONTAINER_ENGINE} buildx build --platform="linux/arm64,linux/amd64" -t ${EXPORTER_IMG} -f Dockerfile.exporter .
+	${CONTAINER_ENGINE} buildx build --platform="${REDIS_PLATFORM}" -t ${EXPORTER_IMG} -f ${REDIS_EXPOTER_DOCKERFILE} .
 
 docker-push-exporter:
-	${CONTAINER_ENGINE} buildx build --push --platform="linux/arm64,linux/amd64" -t ${EXPORTER_IMG} -f Dockerfile.exporter .
+	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${EXPORTER_IMG} -f ${REDIS_EXPOTER_DOCKERFILE} .
