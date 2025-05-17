@@ -52,6 +52,9 @@ redis_mode_setup() {
             echo "replica-announce-port ${REDIS_PORT}"
         } >> /etc/redis/redis.conf
 
+        # Use Multus IP as bind address for Redis
+        sed -i "/^bind/ s:.*:bind $(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'):" /etc/redis/redis.conf
+
     else
         echo "Setting up redis in standalone mode"
     fi
