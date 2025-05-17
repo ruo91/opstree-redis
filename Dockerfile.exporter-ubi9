@@ -1,0 +1,31 @@
+FROM registry.redhat.io/ubi9/ubi:9.6-1747219013 as builder
+
+ARG TARGETARCH
+
+ARG EXPORTER_URL="https://github.com/oliver006/redis_exporter/releases/download"
+
+ARG REDIS_EXPORTER_VERSION="v1.72.0"
+
+WORKDIR /tmp
+
+RUN curl -fL -Lo redis_exporter-${REDIS_EXPORTER_VERSION}.linux-$TARGETARCH.tar.gz \
+    ${EXPORTER_URL}/${REDIS_EXPORTER_VERSION}/redis_exporter-${REDIS_EXPORTER_VERSION}.linux-$TARGETARCH.tar.gz; \
+    tar -xvzf redis_exporter-${REDIS_EXPORTER_VERSION}.linux-$TARGETARCH.tar.gz; \
+    mv redis_exporter-${REDIS_EXPORTER_VERSION}.linux-$TARGETARCH redis_exporter
+
+FROM registry.redhat.io/ubi9/ubi:9.6-1747219013
+
+ARG TARGETARCH
+
+LABEL maintainer="Opstree Solutions"
+
+LABEL vesrion=1.0 \
+      arch=$TARGETARCH \
+      description="A production grade redis exporter docker image created by Opstree Solutions"
+
+COPY --from=builder /tmp/redis_exporter/redis_exporter /usr/local/bin/redis_exporter
+COPY entrypoint-exporter.sh /usr/bin/entrypoint.sh
+
+EXPOSE 9121
+
+ENTRYPOINT ["/usr/bin/entrypoint.sh"]
