@@ -53,7 +53,8 @@ redis_mode_setup() {
         } >> /etc/redis/redis.conf
 
         # Use Multus IP as bind address for Redis
-        sed -i "/^bind/ s:.*:bind $(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'):" /etc/redis/redis.conf
+        MULTUS_IP="$(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'):"
+        sed -i "/^bind/ s:.*:bind $MULTUS_IP:" /etc/redis/redis.conf
 
     else
         echo "Setting up redis in standalone mode"
