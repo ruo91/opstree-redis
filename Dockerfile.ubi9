@@ -49,7 +49,8 @@ COPY --from=builder /usr/local/bin/redis-cli /usr/local/bin/redis-cli
 RUN dnf install -y \
     shadow-utils tzdata make gcc \
     gcc-c++ glibc-devel kernel-headers \
-    bash openssl-devel libstdc++ procps-ng diffutils net-tools ncurses
+    bash openssl-devel libstdc++ procps-ng diffutils net-tools ncurses \
+    numactl numactl-libs
 
 RUN groupadd -g 1000 redis && useradd -g redis -u 1000 redis \
   && dnf clean all
