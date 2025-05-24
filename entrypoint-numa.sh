@@ -168,6 +168,7 @@ start_redis() {
         fi
 
     else
+        # Enable NUMA
         REDIS_NUMA=$(grep -E '^#REDIS_NUMA[[:space:]]+' "$EXTERNAL_CONFIG_FILE" | awk '{print tolower($2)}')
         REDIS_NUMA_NODE=$(grep -E '^#REDIS_NUMA_NODE[[:space:]]+' "$EXTERNAL_CONFIG_FILE" | awk '{print $2}')
         REDIS_NUMA_PHYSCPUBIND=$(numactl --hardware | awk -v node="node $REDIS_NUMA_NODE cpus:" '
