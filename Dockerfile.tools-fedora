@@ -56,7 +56,7 @@ RUN dnf install -y \
     gcc-c++ glibc-devel kernel-headers \
     bash openssl-devel libstdc++ procps-ng diffutils \
     which gawk jemalloc jemalloc-devel net-tools ncurses iproute \
-    numactl numactl-libs tcpdump wireshark-cli \
+    numactl numactl-libs bind-utils iputils htop tcpdump wireshark-cli \
     && dnf clean all
 
 RUN groupadd -g 1000 redis && useradd -g redis -u 1000 redis
