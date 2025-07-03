@@ -1,8 +1,9 @@
 CONTAINER_ENGINE ?= podman
-REDIS_VERSION ?= v8.0.2
-REDIS_TOOLS_VERSION ?= v8.0.2
-REDIS_SENTINEL_VERSION ?= v8.0.2
-REDIS_EXPORTER_VERSION ?= v1.74.0
+NOW_DATE := $(shell date '+%Y%m%d')
+REDIS_VERSION ?= v8.0.2-$(NOW_DATE)
+REDIS_TOOLS_VERSION ?= v8.0.2-$(NOW_DATE)
+REDIS_SENTINEL_VERSION ?= v8.0.2-$(NOW_DATE)
+REDIS_EXPORTER_VERSION ?= v1.74.0-$(NOW_DATE)
 
 REDIS_PLATFORM ?= linux/amd64
 REDIS_DOCKERFILE ?= Dockerfile.fedora
@@ -10,10 +11,10 @@ REDIS_TOOLS_DOCKERFILE ?= Dockerfile.tools-fedora
 REDIS_SENTINEL_DOCKERFILE ?= Dockerfile.sentinel-fedora
 REDIS_EXPORTER_DOCKERFILE ?= Dockerfile.exporter-fedora
 
-IMG ?= quay.io/opstree/redis-fedora:$(REDIS_VERSION)
-TOOLS_IMG ?= quay.io/opstree/redis-tools-fedora:$(REDIS_TOOLS_VERSION)
-EXPORTER_IMG ?= quay.io/opstree/redis-exporter-fedora:$(REDIS_EXPORTER_VERSION)
-SENTINEL_IMG ?= quay.io/opstree/redis-sentinel-fedora:$(REDIS_SENTINEL_VERSION)
+IMG ?= docker.io/ruo91/opstree-redis-fedora:$(REDIS_VERSION)
+TOOLS_IMG ?= docker.io/ruo91/opstree-redis-tools-fedora:$(REDIS_TOOLS_VERSION)
+EXPORTER_IMG ?= docker.io/ruo91/opstree-redis-exporter-fedora:$(REDIS_EXPORTER_VERSION)
+SENTINEL_IMG ?= docker.io/ruo91/opstree-redis-sentinel-fedora:$(REDIS_SENTINEL_VERSION)
 
 build-redis:
 	${CONTAINER_ENGINE} build -t ${IMG} -f Dockerfile --build-arg REDIS_VERSION=${REDIS_VERSION} .

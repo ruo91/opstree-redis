@@ -45,17 +45,17 @@ redis_mode_setup() {
         POD_IP=$(hostname -i)
         sed -i -e "/myself/ s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/${POD_IP}/" "${NODE_CONF_DIR}/nodes.conf"
 
-    elif [[ "${SETUP_MODE}" == "replication" ]]; then
-        {
-            echo "# Redis Replication with Multus"
-            echo "replica-announce-ip $(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')"
-            echo "replica-announce-port ${REDIS_PORT}"
-        } >> /etc/redis/redis.conf
-
-        # Use Multus IP as bind address for Redis
-        MULTUS_IP="$(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'):"
-        sed -i "/^bind/ s:.*:bind $MULTUS_IP:" /etc/redis/redis.conf
-
+    #elif [[ "${SETUP_MODE}" == "replication" ]]; then
+    #    {
+    #        echo "# Redis Replication with Multus"
+    #        echo "replica-announce-ip $(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')"
+    #        echo "replica-announce-port ${REDIS_PORT}"
+    #    } >> /etc/redis/redis.conf
+    #
+    #    # Use Multus IP as bind address for Redis
+    #    MULTUS_IP="$(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'):"
+    #    sed -i "/^bind/ s:.*:bind $MULTUS_IP:" /etc/redis/redis.conf
+    #
     else
         echo "Setting up redis in standalone mode"
     fi

@@ -7,9 +7,9 @@ check_redis_health() {
     if [[ "${TLS_MODE}" == "true" ]]; then
         redis-cli --tls --cert "${REDIS_TLS_CERT}" --key "${REDIS_TLS_CERT_KEY}" --cacert "${REDIS_TLS_CA_KEY}" -h "$(hostname)" -p "${REDIS_PORT}" ping
 
-    elif ip addr show net1 &>/dev/null; then
-        # Use Multus IP as bind address for Redis
-        redis-cli -h "$(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')" -p "${REDIS_PORT}" ping
+    #elif ip addr show net1 &>/dev/null; then
+    #    # Use Multus IP as bind address for Redis
+    #    redis-cli -h "$(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')" -p "${REDIS_PORT}" ping
 
     else
         redis-cli -h "localhost" -p "${REDIS_PORT}" ping
