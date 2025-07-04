@@ -55,7 +55,7 @@ RUN dnf install -y \
     shadow-utils tzdata make gcc \
     gcc-c++ glibc-devel kernel-headers \
     bash openssl-devel libstdc++ procps-ng diffutils \
-    which gawk jemalloc jemalloc-devel net-tools ncurses iproute \
+    which gawk jemalloc jemalloc-devel net-tools ncurses iproute hostname \
     numactl numactl-libs bind-utils iputils htop tcpdump wireshark-cli \
     && dnf clean all
 

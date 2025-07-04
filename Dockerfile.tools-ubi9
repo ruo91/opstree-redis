@@ -51,7 +51,7 @@ COPY --from=builder /usr/local/bin/redis-benchmark /usr/local/bin/redis-benchmar
 
 RUN dnf install -y \
     shadow-utils tzdata make gcc \
-    gcc-c++ glibc-devel kernel-headers \
+    gcc-c++ glibc-devel kernel-headers hostname \
     bash openssl-devel libstdc++ procps-ng diffutils net-tools ncurses
 
 COPY rpms/*.rpm /tmp/

@@ -46,7 +46,7 @@ COPY --from=builder /usr/local/bin/redis-cli /usr/local/bin/redis-cli
 COPY --from=builder /usr/local/bin/redis-sentinel /usr/local/bin/redis-sentinel
 
 RUN groupadd -g 1000 redis && useradd -g redis -u 1000 redis \
-  && dnf clean all
+  && dnf install -y hostname && dnf clean all
 
 COPY sentinel.conf /etc/redis/sentinel.conf
 COPY entrypoint-sentinel.sh /usr/bin/entrypoint-sentinel.sh

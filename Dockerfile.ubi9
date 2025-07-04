@@ -50,7 +50,7 @@ RUN dnf install -y \
     shadow-utils tzdata make gcc \
     gcc-c++ glibc-devel kernel-headers \
     bash openssl-devel libstdc++ procps-ng diffutils net-tools ncurses \
-    numactl numactl-libs
+    numactl numactl-libs hostname
 
 RUN groupadd -g 1000 redis && useradd -g redis -u 1000 redis \
   && dnf clean all
