@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi9/ubi:9.6-1747219013 as builder
+FROM registry.access.redhat.com/ubi10:10.0-1756805986 as builder
 ARG TARGETARCH
 
 LABEL version=1.0 \
@@ -33,7 +33,7 @@ RUN VERSION=$(echo ${REDIS_SENTINEL_VERSION} | sed -e "s/^v//g"); \
     make -C redis-${VERSION} all; \
     make -C redis-${VERSION} install
 
-FROM registry.redhat.io/ubi9/ubi:9.6-1747219013
+FROM registry.access.redhat.com/ubi10:10.0-1756805986
 ARG TARGETARCH
 ENV SENTINEL_PORT=26379
 

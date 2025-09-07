@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi9/ubi:9.6-1747219013 as builder
+FROM registry.access.redhat.com/ubi10:10.0-1756805986 as builder
 
 ARG TARGETARCH
 
@@ -13,7 +13,7 @@ RUN curl -fL -Lo redis_exporter-${REDIS_EXPORTER_VERSION}.linux-$TARGETARCH.tar.
     tar -xvzf redis_exporter-${REDIS_EXPORTER_VERSION}.linux-$TARGETARCH.tar.gz; \
     mv redis_exporter-${REDIS_EXPORTER_VERSION}.linux-$TARGETARCH redis_exporter
 
-FROM registry.redhat.io/ubi9/ubi:9.6-1747219013
+FROM registry.access.redhat.com/ubi10:10.0-1756805986
 
 ARG TARGETARCH
 

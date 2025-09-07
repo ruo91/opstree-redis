@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi9/ubi:9.6-1747219013 as builder
+FROM registry.access.redhat.com/ubi10:10.0-1756805986 as builder
 LABEL maintainer="Opstree Solutions"
 ARG TARGETARCH
 
@@ -34,7 +34,7 @@ RUN VERSION=$(echo ${REDIS_VERSION} | sed -e "s/^v//g"); \
     make -C redis-${VERSION} install \
     && cp redis-${VERSION}/src/redis-* /usr/local/bin/
 
-FROM registry.redhat.io/ubi9/ubi:9.6-1747219013
+FROM registry.access.redhat.com/ubi10:10.0-1756805986
 LABEL maintainer="Opstree Solutions"
 ARG TARGETARCH
 ENV REDIS_PORT=6379
