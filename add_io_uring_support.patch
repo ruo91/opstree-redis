@@ -1,5 +1,5 @@
 --- /dev/null	2025-12-28 12:39:08.547687361 +0900
-+++ IO_URING.md	2025-12-28 21:10:45.322804002 +0900
++++ IO_URING.md	2025-12-29 01:07:33.940381372 +0900
 @@ -0,0 +1,309 @@
 +# Redis io_uring Support
 +
@@ -311,7 +311,7 @@
 +- Server Side Public License v1 (SSPLv1), or
 +- GNU Affero General Public License v3 (AGPLv3)
 --- /dev/null	2025-12-28 12:39:08.547687361 +0900
-+++ README.iouring.md	2025-12-28 21:11:00.243803558 +0900
++++ README.iouring.md	2025-12-29 01:07:46.626380995 +0900
 @@ -0,0 +1,228 @@
 +# Redis io_uring Implementation Summary
 +
@@ -542,7 +542,7 @@
 +**Tested on**: Rocky Linux 9.3, Kernel 5.14, liburing 2.5
 +**Date**: December 24, 2025
 --- /dev/null	2025-12-28 12:39:08.547687361 +0900
-+++ src/ae_iouring.c	2025-12-28 21:11:16.459803076 +0900
++++ src/ae_iouring.c	2025-12-29 01:08:32.829379621 +0900
 @@ -0,0 +1,305 @@
 +/* io_uring based ae.c module
 + *
@@ -850,7 +850,7 @@
 +    return "io_uring";
 +}
 --- /dev/null	2025-12-28 12:39:08.547687361 +0900
-+++ src/conn_iouring.c	2025-12-28 21:11:29.602802685 +0900
++++ src/conn_iouring.c	2025-12-29 01:09:30.680377900 +0900
 @@ -0,0 +1,593 @@
 +/* io_uring based async connection implementation
 + *
@@ -1446,7 +1446,7 @@
 +
 +#endif /* HAVE_IOURING */
 --- /dev/null	2025-12-28 12:39:08.547687361 +0900
-+++ src/conn_iouring.h	2025-12-28 21:11:40.802802352 +0900
++++ src/conn_iouring.h	2025-12-29 01:09:36.722377720 +0900
 @@ -0,0 +1,60 @@
 +/* io_uring based async connection interface
 + *
@@ -1508,8 +1508,92 @@
 +#endif /* HAVE_IOURING */
 +
 +#endif /* __CONN_IOURING_H */
---- src/Makefile.original	2025-11-18 03:49:11.000000000 +0900
-+++ src/Makefile	2025-12-28 21:17:26.795792061 +0900
+--- src/ae.c.original	2025-11-18 23:58:24.000000000 +0900
++++ src/ae.c	2025-12-29 01:05:51.445384421 +0900
+@@ -32,13 +32,17 @@
+ #ifdef HAVE_EVPORT
+ #include "ae_evport.c"
+ #else
+-    #ifdef HAVE_EPOLL
+-    #include "ae_epoll.c"
++    #ifdef HAVE_IOURING
++    #include "ae_iouring.c"
+     #else
+-        #ifdef HAVE_KQUEUE
+-        #include "ae_kqueue.c"
++        #ifdef HAVE_EPOLL
++        #include "ae_epoll.c"
+         #else
+-        #include "ae_select.c"
++            #ifdef HAVE_KQUEUE
++            #include "ae_kqueue.c"
++            #else
++            #include "ae_select.c"
++            #endif
+         #endif
+     #endif
+ #endif
+--- src/config.h.original	2025-11-18 23:58:24.000000000 +0900
++++ src/config.h	2025-12-29 01:08:59.311378833 +0900
+@@ -82,6 +82,13 @@
+ /* Test for polling API */
+ #ifdef __linux__
+ #define HAVE_EPOLL 1
++
++/* io_uring support - available on Linux 5.1+ but we require 5.6+ for
++ * multishot poll and other features. Detection is done at build time
++ * via USE_IOURING=yes in the Makefile. */
++#ifdef USE_IOURING
++#define HAVE_IOURING 1
++#endif
+ #endif
+ 
+ /* Test for accept4() */
+--- src/connection.c.original	2025-11-18 23:58:24.000000000 +0900
++++ src/connection.c	2025-12-29 01:10:07.630376801 +0900
+@@ -68,6 +68,11 @@
+     /* may fail if without BUILD_TLS=yes */
+     RedisRegisterConnectionTypeTLS();
+ 
++#ifdef HAVE_IOURING
++    /* may fail if io_uring is not available at runtime */
++    RedisRegisterConnectionTypeIoUring();
++#endif
++
+     return C_OK;
+ }
+ 
+--- src/connection.h.original	2025-11-18 23:58:24.000000000 +0900
++++ src/connection.h	2025-12-29 01:10:27.641376205 +0900
+@@ -452,9 +452,26 @@
+ int RedisRegisterConnectionTypeUnix(void);
+ int RedisRegisterConnectionTypeTLS(void);
+ 
++#ifdef HAVE_IOURING
++int RedisRegisterConnectionTypeIoUring(void);
++ConnectionType *connectionTypeIoUring(void);
++#endif
++
+ /* Return 1 if connection is using TLS protocol, 0 if otherwise. */
+ static inline int connIsTLS(connection *conn) {
+     return conn && conn->type == connectionTypeTls();
+ }
+ 
++#ifdef HAVE_IOURING
++/* Return 1 if connection is using io_uring, 0 if otherwise. */
++static inline int connIsIoUring(connection *conn) {
++    return conn && conn->type == connectionTypeIoUring();
++}
++#else
++static inline int connIsIoUring(connection *conn) {
++    (void)conn;
++    return 0;
++}
++#endif
++
+ #endif  /* __REDIS_CONNECTION_H */
+--- src/Makefile.original	2025-11-18 23:58:24.000000000 +0900
++++ src/Makefile	2025-12-29 01:30:24.802340596 +0900
 @@ -321,6 +321,22 @@
  BUILD_NO:=0
  BUILD_YES:=1
