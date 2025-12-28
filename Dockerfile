@@ -8,7 +8,7 @@ LABEL version=1.0 \
       arch=$TARGETARCH \
       description="A production grade performance tuned redis docker image created by Opstree Solutions"
 
-ARG REDIS_VERSION="stable"
+ARG REDIS_VERSION="8.4.0"
 
 RUN apk add --no-cache su-exec tzdata make curl build-base linux-headers bash openssl-dev libstdc++
 
