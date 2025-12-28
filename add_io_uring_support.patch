@@ -1634,3 +1634,18 @@
  	echo CFLAGS=$(CFLAGS) >> .make-settings
  	echo LDFLAGS=$(LDFLAGS) >> .make-settings
  	echo REDIS_CFLAGS=$(REDIS_CFLAGS) >> .make-settings
+--- src/conn_iouring.c.original	2025-12-29 02:04:25.978279882 +0900
++++ src/conn_iouring.c	2025-12-29 02:06:15.601276622 +0900
+@@ -13,11 +13,10 @@
+  * allowing for batched submissions and reduced syscall overhead.
+  */
+ 
+-#include "config.h"
++#include "server.h"
+ 
+ #ifdef HAVE_IOURING
+ 
+-#include "server.h"
+ #include "connhelpers.h"
+ #include <liburing.h>
+ #include <sys/uio.h>
