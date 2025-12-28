@@ -1649,3 +1649,16 @@
  #include "connhelpers.h"
  #include <liburing.h>
  #include <sys/uio.h>
+--- src/ae_iouring.c.original	2025-12-29 02:45:40.607206275 +0900
++++ src/ae_iouring.c	2025-12-29 02:44:33.974208257 +0900
+@@ -42,7 +42,9 @@
+      * This reduces syscall overhead but requires CAP_SYS_NICE.
+      * For now, we use standard mode for broader compatibility. */
+ 
+-    int ret = io_uring_queue_init_params(eventLoop->setsize * 2, &state->ring, &params);
++    //int ret = io_uring_queue_init_params(eventLoop->setsize * 2, &state->ring, &params);
++    int entries = 8192;
++    int ret = io_uring_queue_init_params(entries, &state->ring, &params);
+     if (ret < 0) {
+         zfree(state);
+         errno = -ret;
