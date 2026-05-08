@@ -8,6 +8,7 @@ REDIS_EXPORTER_VERSION ?= v1.83.0-$(NOW_DATE)
 REDIS_PLATFORM ?= linux/amd64
 REDIS_DOCKERFILE ?= Dockerfile.fedora
 #REDIS_DOCKERFILE ?= Dockerfile.fedora-io_uring
+#REDIS_DOCKERFILE ?= Dockerfile.fedora-redis-search
 REDIS_TOOLS_DOCKERFILE ?= Dockerfile.tools-fedora
 REDIS_SENTINEL_DOCKERFILE ?= Dockerfile.sentinel-fedora
 REDIS_EXPORTER_DOCKERFILE ?= Dockerfile.exporter-fedora
