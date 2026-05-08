@@ -1,11 +1,11 @@
-FROM registry.fedoraproject.org/fedora:43 as builder
+FROM registry.fedoraproject.org/fedora:44 as builder
 ARG TARGETARCH
 
 LABEL version=1.0 \
       arch=$TARGETARCH \
       description="A production grade performance tuned redis docker image created by Opstree Solutions"
 
-ARG REDIS_SENTINEL_VERSION="8.4.1"
+ARG REDIS_SENTINEL_VERSION="8.6.3"
 
 RUN dnf install -y \
     shadow-utils tzdata make gcc \
@@ -35,7 +35,7 @@ RUN VERSION=$(echo ${REDIS_SENTINEL_VERSION} | sed -e "s/^v//g"); \
     make -C redis-${VERSION} all; \
     make -C redis-${VERSION} install
 
-FROM registry.fedoraproject.org/fedora:43
+FROM registry.fedoraproject.org/fedora:44
 ARG TARGETARCH
 ENV SENTINEL_PORT=26379
 

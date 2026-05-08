@@ -1,4 +1,4 @@
-FROM alpine:3.22.1 as builder
+FROM alpine:3.22.4 as builder
 
 ARG TARGETARCH
 
@@ -6,7 +6,7 @@ LABEL version=1.0 \
       arch=$TARGETARCH \
       description="A production grade performance tuned redis docker image created by Opstree Solutions"
 
-ARG REDIS_SENTINEL_VERSION="8.4.1"
+ARG REDIS_SENTINEL_VERSION="8.6.3"
 
 RUN apk add --no-cache su-exec tzdata make curl build-base linux-headers bash openssl-dev libstdc++
 
@@ -30,7 +30,7 @@ RUN VERSION=$(echo ${REDIS_SENTINEL_VERSION} | sed -e "s/^v//g"); \
     make -C redis-${VERSION} all; \
     make -C redis-${VERSION} install
 
-FROM alpine:3.22.1
+FROM alpine:3.22.4
 
 ARG TARGETARCH
 
