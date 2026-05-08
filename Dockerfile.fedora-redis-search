@@ -19,14 +19,13 @@ RUN dnf install -y \
 WORKDIR /tmp
 
 # Build Redis Search
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-  && source $HOME/.cargo/env
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 ENV LIBCLANG_PATH /usr/lib64
 RUN git clone https://github.com/RediSearch/RediSearch.git \
  && cd RediSearch \
  && git submodule update --init --recursive \
- && export LIBCLANG_PATH=/usr/lib64 && ./build.sh
+ && export LIBCLANG_PATH=/usr/lib64 && source $HOME/.cargo/env && ./build.sh
 
 # Build Redis
 RUN VERSION=$(echo ${REDIS_VERSION} | sed -e "s/^v//g"); \
