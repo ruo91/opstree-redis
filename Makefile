@@ -47,28 +47,28 @@ setup-cluster-compose:
 	docker-compose exec redis-slave-3 /bin/bash -c "/usr/bin/setupMasterSlave.sh"
 
 docker-create:
-	${CONTAINER_ENGINE} buildx --dns 1.1.1.1 create --platform "${REDIS_PLATFORM}" --use
+	${CONTAINER_ENGINE} buildx create --platform "${REDIS_PLATFORM}" --use
 
 docker-build-redis:
-	${CONTAINER_ENGINE} buildx --dns 1.1.1.1 build --platform="${REDIS_PLATFORM}" -t ${IMG} -f ${REDIS_DOCKERFILE} .
+	${CONTAINER_ENGINE} buildx build --dns 1.1.1.1 --platform="${REDIS_PLATFORM}" -t ${IMG} -f ${REDIS_DOCKERFILE} .
 
 docker-push-redis:
-	${CONTAINER_ENGINE} buildx --dns 1.1.1.1 build --push --platform="${REDIS_PLATFORM}" -t ${IMG} -f ${REDIS_DOCKERFILE} .
+	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${IMG} -f ${REDIS_DOCKERFILE} .
 
 docker-build-redis-sentinel:
-	${CONTAINER_ENGINE} buildx --dns 1.1.1.1 build --platform="${REDIS_PLATFORM}" -t ${SENTINEL_IMG} -f ${REDIS_SENTINEL_DOCKERFILE} .
+	${CONTAINER_ENGINE} buildx build --dns 1.1.1.1 --platform="${REDIS_PLATFORM}" -t ${SENTINEL_IMG} -f ${REDIS_SENTINEL_DOCKERFILE} .
 
 docker-push-redis-sentinel:
-	${CONTAINER_ENGINE} buildx --dns 1.1.1.1 build --push --platform="${REDIS_PLATFORM}" -t ${SENTINEL_IMG} -f ${REDIS_SENTINEL_DOCKERFILE} .
+	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${SENTINEL_IMG} -f ${REDIS_SENTINEL_DOCKERFILE} .
 
 docker-build-exporter:
-	${CONTAINER_ENGINE} buildx --dns 1.1.1.1 build --platform="${REDIS_PLATFORM}" -t ${EXPORTER_IMG} -f ${REDIS_EXPORTER_DOCKERFILE} .
+	${CONTAINER_ENGINE} buildx build --dns 1.1.1.1 --platform="${REDIS_PLATFORM}" -t ${EXPORTER_IMG} -f ${REDIS_EXPORTER_DOCKERFILE} .
 
 docker-push-exporter:
-	${CONTAINER_ENGINE} buildx --dns 1.1.1.1 build --push --platform="${REDIS_PLATFORM}" -t ${EXPORTER_IMG} -f ${REDIS_EXPOTER_DOCKERFILE} .
+	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${EXPORTER_IMG} -f ${REDIS_EXPOTER_DOCKERFILE} .
 
 docker-build-tools:
-	${CONTAINER_ENGINE} buildx --dns 1.1.1.1 build --platform="${REDIS_PLATFORM}" -t ${TOOLS_IMG} -f ${REDIS_TOOLS_DOCKERFILE} .
+	${CONTAINER_ENGINE} buildx build --dns 1.1.1.1 --platform="${REDIS_PLATFORM}" -t ${TOOLS_IMG} -f ${REDIS_TOOLS_DOCKERFILE} .
 
 docker-push-tools:
-	${CONTAINER_ENGINE} buildx --dns 1.1.1.1 build --push --platform="${REDIS_PLATFORM}" -t ${TOOLS_IMG} -f ${REDIS_TOOLS_DOCKERFILE} .
+	${CONTAINER_ENGINE} buildx build --push --platform="${REDIS_PLATFORM}" -t ${TOOLS_IMG} -f ${REDIS_TOOLS_DOCKERFILE} .
