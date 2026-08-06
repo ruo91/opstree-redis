@@ -6,7 +6,7 @@ LABEL version=1.0 \
       arch=$TARGETARCH \
       description="A production grade performance tuned redis docker image created by Opstree Solutions"
 
-ARG REDIS_VERSION="8.8.0"
+ARG REDIS_VERSION="8.10.0"
 
 RUN dnf install -y \
     shadow-utils tzdata make cmake gcc \
