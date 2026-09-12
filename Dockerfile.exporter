@@ -27,6 +27,9 @@ LABEL vesrion=1.0 \
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 COPY --from=builder /tmp/redis_exporter/redis_exporter /usr/local/bin/redis_exporter
 
+# Time Zone
+ENV TZ=Asia/Seoul
+
 EXPOSE 9121
 
 ENTRYPOINT ["/usr/local/bin/redis_exporter"]

@@ -75,6 +75,9 @@ VOLUME ["/node-conf"]
 
 WORKDIR /data
 
+# Time Zone
+ENV TZ=Asia/Seoul
+
 EXPOSE ${REDIS_PORT}
 
 USER 1000

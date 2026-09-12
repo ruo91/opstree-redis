@@ -64,6 +64,9 @@ VOLUME ["/sentinel-data"]
 
 WORKDIR /sentinel-data
 
+# Time Zone
+ENV TZ=Asia/Seoul
+
 EXPOSE ${SENTINEL_PORT}
 
 USER 1000

@@ -26,6 +26,9 @@ LABEL vesrion=1.0 \
 COPY --from=builder /tmp/redis_exporter/redis_exporter /usr/local/bin/redis_exporter
 COPY entrypoint-exporter.sh /usr/bin/entrypoint.sh
 
+# Time Zone
+ENV TZ=Asia/Seoul
+
 EXPOSE 9121
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]
