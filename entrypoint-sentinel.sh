@@ -25,10 +25,14 @@ sentinel_mode_setup(){
     echo "sentinel failover-timeout ${MASTER_GROUP_NAME} ${FAILOVER_TIMEOUT}"
     echo "SENTINEL resolve-hostnames ${RESOLVE_HOSTNAMES}"
     echo "SENTINEL announce-hostnames ${ANNOUNCE_HOSTNAMES}"
-    #echo "# Redis Replication with Multus"
-    #echo "sentinel announce-ip $(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')"
-    #echo "sentinel announce-port ${SENTINEL_PORT}"
-
+    if [[ "${ANNOUNCE_HOSTNAMES}" == "yes" && "${RESOLVE_HOSTNAMES}" == "yes" ]]; then
+      SENTINEL_FQDN=$(hostname -f)
+      if [[ "${SENTINEL_FQDN}" == *.* ]]; then
+        echo "sentinel announce-ip ${SENTINEL_FQDN}"
+      else
+        echo "Warning: hostname '${SENTINEL_FQDN}' is not fully qualified; not setting sentinel announce-ip" >&2
+      fi
+    fi
     if [[ -n "${MASTER_PASSWORD}" ]];then
       echo "sentinel auth-pass ${MASTER_GROUP_NAME} ${MASTER_PASSWORD}"
     fi
@@ -37,9 +41,6 @@ sentinel_mode_setup(){
     fi
   }>> /etc/redis/sentinel.conf
 
-  # Use Multus IP as bind address for Redis Sentinel
-  #MULTUS_IP="$(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'):"
-  #sed -i "/^bind/ s:.*:bind $MULTUS_IP:" /etc/redis/redis.conf
 }
 
 external_config() {
