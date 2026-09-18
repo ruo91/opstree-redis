@@ -1,0 +1,259 @@
+name: Auto Redis Version Check
+
+on:
+  schedule:
+    # Run weekly on Monday at 2 AM UTC
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+env:
+  # Oldest release line (major.minor) that we still build images for.
+  # Security fixes are often released for several lines at once, so we
+  # track the latest patch of every line >= this one.
+  MIN_SUPPORTED_LINE: "6.2"
+
+jobs:
+  check-redis-versions:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get Latest Redis Version Per Release Line
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Fetching Redis releases..."
+          versions=$(gh api "repos/redis/redis/releases?per_page=100" --jq '.[].tag_name' | \
+            grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true)
+
+          if [[ -z "$versions" ]]; then
+            echo "ERROR: Could not fetch any Redis release, aborting to be safe"
+            exit 1
+          fi
+
+          min_major="${MIN_SUPPORTED_LINE%%.*}"
+          min_minor="${MIN_SUPPORTED_LINE##*.}"
+
+          # Keep the newest patch of each major.minor line, then drop lines
+          # older than MIN_SUPPORTED_LINE.
+          candidate_versions=$(echo "$versions" | sort -V | \
+            awk -F. '{latest[$1"."$2]=$0} END {for (k in latest) print latest[k]}' | \
+            awk -F. -v maj="$min_major" -v min="$min_minor" \
+              '($1+0 > maj+0) || ($1+0 == maj+0 && $2+0 >= min+0)' | \
+            sort -V | sed 's/^/v/')
+
+          echo "Candidate versions (latest patch per line):"
+          echo "$candidate_versions"
+
+          echo "CANDIDATE_VERSIONS<<EOF" >> $GITHUB_ENV
+          echo "$candidate_versions" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Get Built Versions from Quay.io
+        run: |
+          # Fetch all tags of a quay.io/opstree repository, following pagination.
+          # curl -f makes a Quay outage fail the job instead of returning an
+          # empty tag list, which would make every version look missing and
+          # trigger a mass rebuild.
+          fetch_quay_tags() {
+            local repo="$1" page=1 tags="" resp page_tags has_more
+            while :; do
+              resp=$(curl -sf "https://quay.io/api/v1/repository/opstree/${repo}/tag/?page=${page}&limit=100&onlyActiveTags=true")
+              page_tags=$(echo "$resp" | jq -r '.tags[].name')
+              tags="${tags}${page_tags}"$'\n'
+              has_more=$(echo "$resp" | jq -r '.has_additional')
+              [[ "$has_more" == "true" ]] || break
+              page=$((page + 1))
+            done
+            echo "$tags" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V || true
+          }
+
+          built_redis=$(fetch_quay_tags "redis")
+          built_sentinel=$(fetch_quay_tags "redis-sentinel")
+
+          if [[ -z "$built_redis" || -z "$built_sentinel" ]]; then
+            echo "ERROR: Got an empty tag list from Quay.io, aborting to be safe"
+            exit 1
+          fi
+
+          echo "Built redis versions:"
+          echo "$built_redis"
+          echo "Built sentinel versions:"
+          echo "$built_sentinel"
+
+          echo "BUILT_REDIS_VERSIONS<<EOF" >> $GITHUB_ENV
+          echo "$built_redis" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "BUILT_SENTINEL_VERSIONS<<EOF" >> $GITHUB_ENV
+          echo "$built_sentinel" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Check for New Versions
+        run: |
+          echo "Checking for versions to build..."
+
+          missing_builds=""
+          while IFS= read -r version; do
+            [[ -n "$version" ]] || continue
+            if ! echo "$BUILT_REDIS_VERSIONS" | grep -Fxq "$version"; then
+              echo "Missing redis build: $version"
+              missing_builds="${missing_builds}redis $version"$'\n'
+            fi
+            if ! echo "$BUILT_SENTINEL_VERSIONS" | grep -Fxq "$version"; then
+              echo "Missing sentinel build: $version"
+              missing_builds="${missing_builds}sentinel $version"$'\n'
+            fi
+          done <<< "$CANDIDATE_VERSIONS"
+
+          # The overall newest version is the only one allowed to move the
+          # :latest tag; older release lines must not clobber it.
+          highest_version=$(echo "$CANDIDATE_VERSIONS" | tail -1)
+          echo "HIGHEST_VERSION=$highest_version" >> $GITHUB_ENV
+
+          if [[ -n "$missing_builds" ]]; then
+            echo "Builds to trigger:"
+            echo "$missing_builds"
+            echo "MISSING_BUILDS<<EOF" >> $GITHUB_ENV
+            echo "$missing_builds" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            echo "HAS_NEW_VERSIONS=true" >> $GITHUB_ENV
+          else
+            echo "No new versions found"
+            echo "HAS_NEW_VERSIONS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Trigger Redis Builds
+        if: env.HAS_NEW_VERSIONS == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Starting to trigger builds..."
+
+          while IFS=' ' read -r component version; do
+            [[ -n "$component" && -n "$version" ]] || continue
+
+            tag_latest="false"
+            if [[ "$version" == "$HIGHEST_VERSION" ]]; then
+              tag_latest="true"
+            fi
+
+            echo "Triggering $component build for $version (tag_latest=$tag_latest)"
+            gh workflow run manual-release.yaml \
+              -f component=$component \
+              -f version=$version \
+              -f tag_latest=$tag_latest
+
+            # Wait to avoid too frequent API calls
+            sleep 5
+          done <<< "$MISSING_BUILDS"
+
+          echo "All build tasks have been triggered"
+
+      - name: Get Redis Exporter Latest Versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Fetching Redis Exporter latest 5 stable versions..."
+          exporter_versions=$(gh api "repos/oliver006/redis_exporter/releases?per_page=5" --jq '.[].tag_name' | \
+            grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | \
+            sort -V || true)
+
+          if [[ -z "$exporter_versions" ]]; then
+            echo "ERROR: Could not fetch any Redis Exporter release, aborting to be safe"
+            exit 1
+          fi
+
+          echo "Redis Exporter latest versions:"
+          echo "$exporter_versions"
+
+          echo "EXPORTER_VERSIONS<<EOF" >> $GITHUB_ENV
+          echo "$exporter_versions" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Get Built Redis Exporter Versions from Quay.io
+        run: |
+          echo "Fetching built Redis Exporter versions from Quay.io..."
+
+          page=1
+          built_exporter_versions=""
+          while :; do
+            resp=$(curl -sf "https://quay.io/api/v1/repository/opstree/redis-exporter/tag/?page=${page}&limit=100&onlyActiveTags=true")
+            built_exporter_versions="${built_exporter_versions}$(echo "$resp" | jq -r '.tags[].name')"$'\n'
+            [[ "$(echo "$resp" | jq -r '.has_additional')" == "true" ]] || break
+            page=$((page + 1))
+          done
+          built_exporter_versions=$(echo "$built_exporter_versions" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V || true)
+
+          if [[ -z "$built_exporter_versions" ]]; then
+            echo "ERROR: Got an empty tag list from Quay.io, aborting to be safe"
+            exit 1
+          fi
+
+          echo "Built Redis Exporter versions:"
+          echo "$built_exporter_versions"
+
+          echo "BUILT_EXPORTER_VERSIONS<<EOF" >> $GITHUB_ENV
+          echo "$built_exporter_versions" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Check for New Redis Exporter Versions
+        run: |
+          echo "Checking for new Redis Exporter versions to build..."
+
+          new_exporter_versions=""
+          while IFS= read -r version; do
+            [[ -n "$version" ]] || continue
+            if ! echo "$BUILT_EXPORTER_VERSIONS" | grep -Fxq "$version"; then
+              echo "Found new Redis Exporter version: $version"
+              new_exporter_versions="${new_exporter_versions}${version}"$'\n'
+            else
+              echo "Redis Exporter version $version already exists"
+            fi
+          done <<< "$EXPORTER_VERSIONS"
+
+          highest_exporter_version=$(echo "$EXPORTER_VERSIONS" | tail -1)
+          echo "HIGHEST_EXPORTER_VERSION=$highest_exporter_version" >> $GITHUB_ENV
+
+          if [[ -n "$new_exporter_versions" ]]; then
+            echo "Redis Exporter versions to build:"
+            echo "$new_exporter_versions"
+            echo "NEW_EXPORTER_VERSIONS<<EOF" >> $GITHUB_ENV
+            echo "$new_exporter_versions" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            echo "HAS_NEW_EXPORTER_VERSIONS=true" >> $GITHUB_ENV
+          else
+            echo "No new Redis Exporter versions found"
+            echo "HAS_NEW_EXPORTER_VERSIONS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Trigger Redis Exporter Builds
+        if: env.HAS_NEW_EXPORTER_VERSIONS == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Starting to trigger Redis Exporter builds..."
+
+          while IFS= read -r version; do
+            [[ -n "$version" ]] || continue
+
+            tag_latest="false"
+            if [[ "$version" == "$HIGHEST_EXPORTER_VERSION" ]]; then
+              tag_latest="true"
+            fi
+
+            echo "Triggering exporter build for $version (tag_latest=$tag_latest)"
+            gh workflow run manual-release.yaml \
+              -f component=exporter \
+              -f version=$version \
+              -f tag_latest=$tag_latest
+
+            # Wait to avoid too frequent API calls
+            sleep 5
+          done <<< "$NEW_EXPORTER_VERSIONS"
+
+          echo "All Redis Exporter build tasks have been triggered"
