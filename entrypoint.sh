@@ -58,6 +58,10 @@ redis_mode_setup() {
                 echo "Warning: hostname '${POD_FQDN}' is not fully qualified; not setting replica-announce-ip"
             fi
         fi
+    #    # Use Multus IP as bind address for Redis
+    #    MULTUS_IP="$(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'):"
+    #    sed -i "/^bind/ s:.*:bind $MULTUS_IP:" /etc/redis/redis.conf
+
     else
         echo "Setting up redis in standalone mode"
     fi

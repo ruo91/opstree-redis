@@ -25,6 +25,11 @@ sentinel_mode_setup(){
     echo "sentinel failover-timeout ${MASTER_GROUP_NAME} ${FAILOVER_TIMEOUT}"
     echo "SENTINEL resolve-hostnames ${RESOLVE_HOSTNAMES}"
     echo "SENTINEL announce-hostnames ${ANNOUNCE_HOSTNAMES}"
+
+    #echo "# Redis Replication with Multus"
+    #echo "sentinel announce-ip $(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')"
+    #echo "sentinel announce-port ${SENTINEL_PORT}"
+
     if [[ "${ANNOUNCE_HOSTNAMES}" == "yes" && "${RESOLVE_HOSTNAMES}" == "yes" ]]; then
       SENTINEL_FQDN=$(hostname -f)
       if [[ "${SENTINEL_FQDN}" == *.* ]]; then
@@ -40,6 +45,10 @@ sentinel_mode_setup(){
       (echo -n "sentinel myid "; echo "${SENTINEL_ID}" | sha1sum | awk '{ print $1 }')
     fi
   }>> /etc/redis/sentinel.conf
+
+  # Use Multus IP as bind address for Redis Sentinel
+  #MULTUS_IP="$(ip -4 addr show net1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'):"
+  #sed -i "/^bind/ s:.*:bind $MULTUS_IP:" /etc/redis/redis.conf
 
 }
 
